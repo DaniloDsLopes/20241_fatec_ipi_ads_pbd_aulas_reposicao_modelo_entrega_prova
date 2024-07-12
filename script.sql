@@ -83,9 +83,9 @@ DO $$
         OPEN cur_alunos_aprovados_sozinhos FOR EXECUTE
         format(
             '
-            SELECT grade,prep_study FROM %s WHERE grade > v_nota AND prep_study = v_preparacao;
+            SELECT grade,prep_study FROM %s WHERE grade > %s AND prep_study = %s;
             ',
-            v_nome_tabela 
+            v_nome_tabela, v_nota,v_preparacao 
         );
         LOOP
             --3 Recuperação dos dados de interesse
@@ -97,16 +97,37 @@ DO $$
         IF v_cont = 0 then
             RAISE NOTICE '-1';
         Else
-            RAISE NOTICE '%', v_cont
+            RAISE NOTICE '%', v_cont;
         END IF;
         
         --4 fechamento do cursor
-        Close cur_alunos_aprovados_sozinhos
+        Close cur_alunos_aprovados_sozinhos;
 END;$$
 -- ----------------------------------------------------------------
 -- 4 Salário versus estudos
 --escreva a sua solução aqui
+DO $$
+DECLARE
+    --1 Declaração
+    cur_alunos_regularmente Cursor FOR
+    SELECT salary,prep_exam FROM
+    tb_estudantes;
 
+    v_tupla RECORD;
+    v_resultado TEXT DEFAULT '';
+BEGIN
+    --2 abertura do CURSOR
+    OPEN cur_alunos_regularmente;
+    --3 Recuperação dos dados
+    -- faça um while em 2 minutos
+    FETCH cur_alunos_regularmente INTO v_tupla;
+    While FOUND LOOP
+        resultado := v.resultado || v_tupla.youtuber || ': ' || v_tupla.subscribers || CHR(13);
+    Fetch cur_alunos_regularmente INTO v_tupla;
+    END LOOP;
+    Close cur_alunos_regularmente;
+    RAISE NOTICE '%', v_resultados;
+END; $$
 
 -- ----------------------------------------------------------------
 -- 5. Limpeza de valores NULL
