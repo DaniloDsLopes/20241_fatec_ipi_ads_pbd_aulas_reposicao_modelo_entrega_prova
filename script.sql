@@ -69,40 +69,40 @@ CREATE table tb_estudantes (
 -- ----------------------------------------------------------------
 -- 3 Resultado em função dos estudos
 --escreva a sua solução aqui
-DO $$
-    DECLARE
-    --1 declaração
-    cur_alunos_aprovados_sozinhos REFCURSOR;
+-- DO $$
+--     DECLARE
+--     --1 declaração
+--     cur_alunos_aprovados_sozinhos REFCURSOR;
 
-    v_nota int := 0;
-    v_preparacao int:= 1;
-    v_cont int := 0;
-    v_nome_tabela VARCHAR(200) := 'tb_estudantes';
-    BEGIN
-        --2 abertura
-        OPEN cur_alunos_aprovados_sozinhos FOR EXECUTE
-        format(
-            '
-            SELECT grade,prep_study FROM %s WHERE grade > %s AND prep_study = %s;
-            ',
-            v_nome_tabela, v_nota,v_preparacao 
-        );
-        LOOP
-            --3 Recuperação dos dados de interesse
-            FETCH cur_alunos_aprovados_sozinhos INTO v_nota, v_preparacao;
-            EXIT WHEN NOT FOUND;
-            v_cont = v_cont +1;
-        END LOOP;
+--     v_nota int := 0;
+--     v_preparacao int:= 1;
+--     v_cont int := 0;
+--     v_nome_tabela VARCHAR(200) := 'tb_estudantes';
+--     BEGIN
+--         --2 abertura
+--         OPEN cur_alunos_aprovados_sozinhos FOR EXECUTE
+--         format(
+--             '
+--             SELECT grade,prep_study FROM %s WHERE grade > %s AND prep_study = %s;
+--             ',
+--             v_nome_tabela, v_nota,v_preparacao 
+--         );
+--         LOOP
+--             --3 Recuperação dos dados de interesse
+--             FETCH cur_alunos_aprovados_sozinhos INTO v_nota, v_preparacao;
+--             EXIT WHEN NOT FOUND;
+--             v_cont = v_cont +1;
+--         END LOOP;
 
-        IF v_cont = 0 then
-            RAISE NOTICE '-1';
-        Else
-            RAISE NOTICE '%', v_cont;
-        END IF;
+--         IF v_cont = 0 then
+--             RAISE NOTICE '-1';
+--         Else
+--             RAISE NOTICE '%', v_cont;
+--         END IF;
         
-        --4 fechamento do cursor
-        Close cur_alunos_aprovados_sozinhos;
-END;$$
+--         --4 fechamento do cursor
+--         Close cur_alunos_aprovados_sozinhos;
+-- END;$$
 -- ----------------------------------------------------------------
 -- 4 Salário versus estudos
 --escreva a sua solução aqui
@@ -111,10 +111,9 @@ DECLARE
     --1 Declaração
     cur_alunos_regularmente Cursor FOR
     SELECT salary,prep_exam FROM
-    tb_estudantes;
-
+    tb_estudantes WHERE salary = 5 AND prep_exam = 2;
     v_tupla RECORD;
-    v_resultado TEXT DEFAULT '';
+    v_resultado int:= 0;
 BEGIN
     --2 abertura do CURSOR
     OPEN cur_alunos_regularmente;
@@ -122,15 +121,41 @@ BEGIN
     -- faça um while em 2 minutos
     FETCH cur_alunos_regularmente INTO v_tupla;
     While FOUND LOOP
-        resultado := v.resultado || v_tupla.youtuber || ': ' || v_tupla.subscribers || CHR(13);
+        v_resultado = v_resultado + 1;
     Fetch cur_alunos_regularmente INTO v_tupla;
     END LOOP;
     Close cur_alunos_regularmente;
-    RAISE NOTICE '%', v_resultados;
-END; $$
+    RAISE NOTICE '%', v_resultado;
+END;$$
 
 -- ----------------------------------------------------------------
 -- 5. Limpeza de valores NULL
 --escreva a sua solução aqui
 
+DO $$
+    DECLARE
+        cur_delete REFCURSOR;
+        v_tupla RECORD;
+    BEGIN
+        --2 abertura do CURSOR
+        Open cur_delete SCROLL FOR
+        SELECT * FROM tb_top_youtubers;
+        LOOP
+            --3 recuperação dos dados de interesse
+            FETCH cur_delete INTO v_tupla
+            EXIT when not FOUND;
+            IF v_tupla.video_count ISNULL THEN
+                Delete FROM tb_top_youtubers where CURRENT OF cur_delete;
+            END IF;
+        END loop;
+
+        LOOP
+            FETCH BACKWARD FROM cur_delete INTO v_tupla;
+            exit when not FOUND;
+            raise notice '%', v_tupla;
+        End LOOP
+        -- 4 fechamento cursor
+        close cur_delete;
+    END;
+$$
 -- ----------------------------------------------------------------
